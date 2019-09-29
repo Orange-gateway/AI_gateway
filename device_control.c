@@ -4592,6 +4592,7 @@ void get_signal(void)
 				data_arr_jx = cJSON_GetArrayItem(my_dev_list_list,i);
 				tem_mac = cJSON_GetObjectItem(data_arr_jx,"mac");
 				tem_type = cJSON_GetObjectItem(data_arr_jx,"dev_type");
+				tem_id = cJSON_GetObjectItem(data_arr_jx,"dev_id");
 				if(strcmp(tem_type->valuestring,"010101")==0)
 					flag_get=1;
 				else if(strcmp(tem_type->valuestring,"010102")==0)
