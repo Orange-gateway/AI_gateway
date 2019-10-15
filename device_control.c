@@ -5877,6 +5877,8 @@ void dev_com_con_u(int i,int u_data_len,uint8_t *u_data,char *u_data_str)
 																		cmd_mix(tem_mac_for->valuestring,tem_port_for->valuestring,"0000",multi_bind_final_cmd);
 																		resend_zt(17,multi_bind_final_cmd,tem_id_for->valuestring,tem_type_for->valuestring);
 																		usart_send(fd,multi_bind_final_cmd,17);
+																		free(multi_bind_final_cmd);
+																		multi_bind_final_cmd = NULL;
 																	}
 																	usleep(200000);
 																	break;
