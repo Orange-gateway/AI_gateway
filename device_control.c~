@@ -180,8 +180,7 @@ void cmd_hw_study_or_complish(char *mac,uint8_t *final_cmd,int flag)//发送至�
 	else 
 	final_cmd[16] = 0x02;
 }
-
-void cmd_mix_lock(char *mac,char *port,uint8_t *final_cmd)//发送至串口合成命令(开锁控制指令)
+void cmd_mix_lock(char *mac,char *port,char *cmd,uint8_t *final_cmd)//发送至串口合成命令(开锁控制指令)
 {
 	char send_cmd[51];
 	memset(send_cmd,0,51);
@@ -190,6 +189,7 @@ void cmd_mix_lock(char *mac,char *port,uint8_t *final_cmd)//发送至串口合�
 	strcat(send_cmd,"90");
 	strcat(send_cmd,port);
 	strcat(send_cmd,"00000aaa550200000000000000");
+	memcpy(send_cmd+38,cmd+4,2);
 	str_to_hex(final_cmd,send_cmd,25);
 }
 /***********************************************************************************************************/
@@ -237,7 +237,7 @@ void dev_com_con(cJSON *root)//无内存泄露问题
 					memset(final_cmd,0,15+len_of_cmd);
 					if(strcmp(dev_type_this->valuestring,"0D0101")==0)
 					{
-						cmd_mix_lock(data_mac->valuestring,data_port->valuestring,final_cmd);
+						cmd_mix_lock(data_mac->valuestring,data_port->valuestring,data_dev_cmd->valuestring,final_cmd);
 						usart_send(fd, final_cmd,15+len_of_cmd);
 					}
 					else if(strcmp(dev_type_this->valuestring,"010101")==0)
@@ -4632,6 +4632,7 @@ void get_signal(void)
 					if(sig_head==NULL)
 					{
 						sig_d = (SIG *)malloc(sizeof(SIG));
+						memset(sig_d,0,sizeof(SIG));
 						sig_d->mac = tem_mac;
 						sig_d->dev_id = tem_id;
 						sig_d->dev_type = tem_type;
@@ -4649,6 +4650,7 @@ void get_signal(void)
 							if(p==NULL)
 							{
 								sig_d = (SIG *)malloc(sizeof(SIG));
+								memset(sig_d,0,sizeof(SIG));
 								sig_d->mac = tem_mac;
 								sig_d->dev_id = tem_id;
 								sig_d->dev_type = tem_type;
@@ -5877,6 +5879,8 @@ void dev_com_con_u(int i,int u_data_len,uint8_t *u_data,char *u_data_str)
 																		cmd_mix(tem_mac_for->valuestring,tem_port_for->valuestring,"0000",multi_bind_final_cmd);
 																		resend_zt(17,multi_bind_final_cmd,tem_id_for->valuestring,tem_type_for->valuestring);
 																		usart_send(fd,multi_bind_final_cmd,17);
+																		free(multi_bind_final_cmd);
+																		multi_bind_final_cmd = NULL;
 																	}
 																	usleep(200000);
 																	break;
@@ -8910,9 +8914,10 @@ void run_scene_u_triger(char *dev_id,char *status)
 									}
 								}
 							}
-							break;
 						}
+						if(scene_triger_flag) break;
 					}
+					if(scene_triger_flag) break;
 				}
 			}
 		}
@@ -9339,9 +9344,10 @@ void run_scene_u_triger_sensor(char *dev_id,char *status)
 									}
 								}
 							}
-							break;
 						}
+						if(scene_triger_flag) break;
 					}
+					if(scene_triger_flag) break;
 				}
 			}
 		}
