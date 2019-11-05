@@ -27,7 +27,6 @@
  pthread_mutex_t mutex_down_file;//下载文件锁
  pthread_mutex_t mutex_room;//房间锁
  pthread_mutex_t mutex_human;//人体文件互斥锁
- pthread_mutex_t mutex_resend;//重发互斥锁
  pthread_cond_t cond;
  pthread_mutex_t mutex_waite;
  typedef struct resend //重发结构体
