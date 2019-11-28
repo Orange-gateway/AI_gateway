@@ -33,3 +33,12 @@ int mac_and_port_judge_human(HB *p,char *mac,char *port)
 }
 
 
+
+int mac_and_port_judge_delay(DELAY *p,char *mac,char *port)
+{
+	if(strcmp(p->dev_mac,mac)==0 && strcmp(p->dev_port,port)==0)
+		return 0;
+	else
+		return -1;
+}
+
