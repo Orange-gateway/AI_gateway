@@ -1,7 +1,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
-#include "stdint.h"
 #include "pthread.h"
+#include <stdint.h>
 #define BUFFSIZE 81920
 #define BUFFSIZE_MAX 819200
 #define BUFFSIZE_ROOM 10240
@@ -11,11 +11,11 @@
  int NET_FLAG; 
  int device_flag;
  int down_gw_flag;
+ int alive;
  pid_t main_pid;
- time_t first;//接收更新时间
- time_t second;//心跳更新时间
+ //time_t first;//接收更新时间
+ //time_t second;//心跳更新时间
  time_t net_record_time;//入网记录时间
- pthread_t id_client;//联网线程id，全局变量，拿来心跳kill重连
  pthread_mutex_t mutex_v;//全开全关下发锁
  pthread_mutex_t mutex_sl;//遍历设备列表锁
  pthread_mutex_t mutex_zl;//遍历设备状态列表锁

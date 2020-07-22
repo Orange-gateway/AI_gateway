@@ -9,12 +9,14 @@ void pthread_u_send(char* str)
 	{
 		if(!identify_flag)
 		{
-			char *mac = malloc(13);
+			//char *mac = malloc(13);
+			char mac[13];
 			memset(mac,0,13);
 			get_mac(mac);
-			char *str_json = malloc(256);
+			//char *str_json = malloc(256);
+			char str_json[256];
 			memset(str_json,0,256);
-			int sn_fd = open("/system/bin/sn.txt",O_RDWR|O_CREAT,0777);
+			int sn_fd = open("/sdcard/gate_list/sn.txt",O_RDWR|O_CREAT,0777);
 			memset(gw_sn,0,100);
 			int sn_fd_len = read(sn_fd,gw_sn,100);
 			close(sn_fd);
@@ -32,10 +34,10 @@ void pthread_u_send(char* str)
 				sn_pwd_str(str_json,mac);
 				send(cd,str_json,strlen(str_json),0);
 			}
-			free(mac);
-			mac=NULL;
-			free(str_json);
-			str_json=NULL;
+			//free(mac);
+			//mac=NULL;
+			//free(str_json);
+			//str_json=NULL;
 		}
 	}
 	else
@@ -295,11 +297,18 @@ void pthread_usart_receive(void)
 	while(1)
 	{
 		len = read(fd,r_buff,sizeof(r_buff));
-
+		
 		if(len>0)
 		{
 			for(i=0;i<len;i++)
 			{
+				#if 0
+				if(arr_len >= 10240)		//2020 02 20 add 设置判断总数据是否超过存储空间 如果超过  放弃全部数据
+				{
+					arr_len = 0;
+					memset(rc_buff,0,10240);
+				}
+				#endif
 				rc_buff[arr_len]=r_buff[i];
 				arr_len+=1;
 			}
@@ -321,16 +330,22 @@ void pthread_usart_receive(void)
 						if(arr_len > 15)
 						{
 							data_len = rc_buff[13]+rc_buff[14]+15;
-							
+							#if 0
+							if(data_len > 512)		//2020 05 20 add 设置判断一个包数据是否超过512byte
+							{
+								delete_len_from_arr(rc_buff,data_len,&arr_len);
+							}
+							#endif 
 							if(arr_len >= data_len)
 							{
 								uint8_t *my_u_data = NULL;
 								my_u_data =(uint8_t*)malloc(data_len);//解析数据接收缓冲区
 								memset(my_u_data,0,data_len);
-
+#if 0
 								for(i=0;i<data_len;i++)
 									my_u_data[i]=rc_buff[i];
-/*
+#endif
+#if 1
 								printf("usart receive is:");
 								for(i=0;i<data_len;i++)
 								{
@@ -338,7 +353,7 @@ void pthread_usart_receive(void)
 									printf("%.2x  ",my_u_data[i]);
 								}
 								printf("\n");
-*/
+#endif
 								up_resend(my_u_data);//更新重发列表
 								
 								pth_creat_my(pthread_v_send,my_u_data);
@@ -364,38 +379,35 @@ void pthread_usart_receive(void)
 /*线程接收服务器函数*/
 void pthread_client_receive(void)
 {
-	int flag=0,ret_recv,str_len=0,i,num=0;
+	int flag=0,ret_recv,str_len=0,i;
 	char c_send[8192];//客户端数据缓冲区
 	memset(str_from_server,0,BUFFSIZE_MAX);
 	memset(c_send,0,8192);
-	signal(6,reconnect);
+	
 	while(1)
 	{
 		ret_recv=recv(cd,c_send,8192,0);
-
 		if(ret_recv>0)
 		{	
 			for(i=0;i<ret_recv;i++)
 			{
+				#if 0						//2020 02 20 add
+				if(str_len >= BUFFSIZE_MAX)
+				{
+					str_len = 0;
+					memset(str_from_server,0,BUFFSIZE_MAX);
+				}
+				#endif 
 				str_from_server[str_len]=c_send[i];
 				str_len+=1;
 			}
 			memset(c_send,0,sizeof(c_send));
 		}
-		else if(ret_recv == 0)
+		else if(ret_recv <= 0)
 		{
-			num++;
-			if(num>5)
-			{
-				printf("server is gone\n");
-				kill_gateway();
-			}
-
-		}
-		else
-		{
-			sleep(1);
-			continue;
+			identify_flag = NET_FLAG = 0;
+			reconnect();
+			sleep(2);
 		}
 		while(1)
 		{
@@ -408,10 +420,10 @@ void pthread_client_receive(void)
 				for(i=14;i<str_len;i++)
 				{
 					if(str_from_server[i]=='\n')
-						{
-							flag=i;
-							break;
-						}	
+					{
+						flag=i;
+						break;
+					}
 				}
 
 				if(flag>=15)
@@ -424,10 +436,13 @@ void pthread_client_receive(void)
 					memcpy(r_str,str_from_server,flag+1);
 					r_str[flag]='\0';
 					replace_character(r_str);
-					
+		
 					if(json_checker(r_str)==0)
 					{
-						first = time(NULL);
+						#if 0
+						printf("recv from : %s\n",r_str);
+						#endif
+						alive = 1;
 						pth_creat_my(pthread_u_send,r_str);
 					}
 					else
@@ -435,7 +450,7 @@ void pthread_client_receive(void)
 						free(r_str);
 						r_str=NULL;
 					}
-					
+		
 					delete_len_from_str(str_from_server,flag+1,&str_len);
 				}
 				else if(flag==14)
@@ -453,7 +468,7 @@ void pthread_client_receive(void)
 	}
 }
 /*重连函数*/
-void reconnect(int num)
+void reconnect(void)
 {
 	shutdown(cd,SHUT_RDWR);
 	close(cd);
@@ -462,27 +477,39 @@ void reconnect(int num)
 /*心跳机制*/
 void heart_jump(void)
 {
-	int time_diff=0;
-	first=time(NULL);
-	second=time(NULL);
+	int SendCount = 0;
+	cJSON *heart_root = cJSON_CreateObject();
+	cJSON_AddStringToObject(heart_root,"heart_jump","heart jump");
+	char *send_char = cJSON_PrintUnformatted(heart_root);
+	int my_len = strlen(send_char);
+	char *my_send_char = (char *)malloc(my_len+2);
+	memset(my_send_char,0,my_len+2);
+	memcpy(my_send_char,send_char,my_len);
+	strcat(my_send_char,"\n\0");
+	free(send_char);
+	send_char=NULL;
+	cJSON_Delete(heart_root);
+	heart_root=NULL;
 	while(1)
 	{
-		sleep(1);
-		second=time(NULL);
-		if( (abs((unsigned int)difftime(second,first))-time_diff) > 2)
+		sleep(5);
+		if(alive == 1)
 		{
-			first = time(NULL);
+			SendCount = alive = 0;
 		}
-		time_diff = abs((unsigned int)difftime(second,first));
-		if(time_diff > 30)
+		else
 		{
-			if(identify_flag==1) 
+			SendCount += 1;
+			if(SendCount > 3)
 			{
-				printf("first but not heart_jump\n");
-				kill_gateway();
+				SendCount = 0;
+				shutdown(cd,SHUT_RDWR);
+				close(cd);
 			}
-			first=second=time(NULL);
-			pthread_kill(id_client,6);
+			else if(identify_flag)
+			{
+				send(cd,my_send_char,my_len+1,0);
+			}
 		}
 	}
 }
@@ -746,7 +773,7 @@ void human_check(void)
 								char *device_state_list_char = cJSON_PrintUnformatted(device_state_list_data);
 								memset(device_state_list,0,BUFFSIZE);
 								memcpy(device_state_list,device_state_list_char,strlen(device_state_list_char));
-								int state_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+								int state_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 								write(state_fd,device_state_list_char,strlen(device_state_list_char));
 								close(state_fd);
 								free(device_state_list_char);
@@ -795,7 +822,7 @@ void human_check(void)
 											char *device_state_list_char = cJSON_PrintUnformatted(device_state_list_data);
 											memset(device_state_list,0,BUFFSIZE);
 											memcpy(device_state_list,device_state_list_char,strlen(device_state_list_char));
-											int state_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+											int state_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 											write(state_fd,device_state_list_char,strlen(device_state_list_char));
 											close(state_fd);
 											free(device_state_list_char);
@@ -824,7 +851,7 @@ void human_check(void)
 											char *device_state_list_char = cJSON_PrintUnformatted(device_state_list_data);
 											memset(device_state_list,0,BUFFSIZE);
 											memcpy(device_state_list,device_state_list_char,strlen(device_state_list_char));
-											int state_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+											int state_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 											write(state_fd,device_state_list_char,strlen(device_state_list_char));
 											close(state_fd);
 											free(device_state_list_char);
@@ -858,7 +885,7 @@ void human_check(void)
 										char *device_state_list_char = cJSON_PrintUnformatted(device_state_list_data);
 										memset(device_state_list,0,BUFFSIZE);
 										memcpy(device_state_list,device_state_list_char,strlen(device_state_list_char));
-										int state_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+										int state_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 										write(state_fd,device_state_list_char,strlen(device_state_list_char));
 										close(state_fd);
 										free(device_state_list_char);
@@ -950,7 +977,7 @@ void human_zt(char *mac,char *port,char *id,char *type,time_t num)
 				memcpy(human_d->type,type,strlen(type)+1);
 				p->next = human_d;
 				human_d->next = NULL;
-				break;
+				break ;
 			}
 			p = p->next;
 		}
@@ -1215,7 +1242,7 @@ void my_timer(void)
 							}
 							if(flag_go == 0) continue;
 						}
-						else if(atoi(my_week) == p->tm_wday) flag_go = 1;
+						else if(atoi(my_week) == p->tm_wday ) flag_go = 1;
 						else continue;
 						if(flag_go==1)
 						{
@@ -1332,28 +1359,4 @@ void get_status(void)
 	cJSON_Delete(dev_list_data);
 	dev_list_data=NULL;
 }
-void gateway_send_heart_jump(void)
-{
-	while(1)
-	{
-		if(NET_FLAG)
-		{
-			cJSON *heart_root = cJSON_CreateObject();
-			cJSON_AddStringToObject(heart_root,"heart_jump","heart jump");
-			char *send_char = cJSON_PrintUnformatted(heart_root);
-			int my_len = strlen(send_char);
-			char *my_send_char = (char *)malloc(my_len+2);
-			memset(my_send_char,0,my_len+2);
-			memcpy(my_send_char,send_char,my_len);
-			strcat(my_send_char,"\n\0");
-			send(cd,my_send_char,my_len+1,0);
-			free(send_char);
-			send_char=NULL;
-			free(my_send_char);
-			my_send_char=NULL;
-			cJSON_Delete(heart_root);
-			heart_root=NULL;
-		}
-		sleep(10);
-	}
-}
+

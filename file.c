@@ -3,7 +3,7 @@ void file_init_common()
 {
 /*	初始化情景列表文件*/
 	memset(scene_list,0,BUFFSIZE);
-	int scene_list_fd = open("/system/bin/scene_list.txt",O_RDWR|O_CREAT,0777);
+	int scene_list_fd = open("/sdcard/gate_list/scene_list.txt",O_RDWR|O_CREAT,0777);
 	
 	int scene_list_read_len = read(scene_list_fd,scene_list,BUFFSIZE);
 
@@ -14,7 +14,7 @@ void file_init_common()
 	{
 		printf("scene_list not json!!!\n");
 		memset(scene_list,0,BUFFSIZE);
-		scene_list_fd = open("/system/bin/scene_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		scene_list_fd = open("/sdcard/gate_list/scene_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memcpy(scene_list,"{}",2);
 		write(scene_list_fd,scene_list,2);
 		fsync(scene_list_fd);
@@ -25,7 +25,7 @@ void file_init_common()
 /*	初始化情景明细文件  */
 	
 	memset(scene_detail,0,BUFFSIZE_MAX);
-	int scene_detail_fd = open("/system/bin/scene_detail.txt",O_RDWR|O_CREAT,0777);
+	int scene_detail_fd = open("/sdcard/gate_list/scene_detail.txt",O_RDWR|O_CREAT,0777);
 
 	int scene_detail_read_len = read(scene_detail_fd,scene_detail,BUFFSIZE_MAX);
 
@@ -36,7 +36,7 @@ void file_init_common()
 	{
 		printf("scene_detail not json!!!\n");
 		memset(scene_detail,0,BUFFSIZE_MAX);
-		scene_detail_fd = open("/system/bin/scene_detail.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		scene_detail_fd = open("/sdcard/gate_list/scene_detail.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memcpy(scene_detail,"{}",2);
 		write(scene_detail_fd,scene_detail,2);
 		fsync(scene_detail_fd);
@@ -47,7 +47,7 @@ void file_init_common()
 /* 	初始化设备列表文件  */
 	
 	memset(device_list,0,BUFFSIZE_MAX);
-	int device_list_fd = open("/system/bin/device_list.txt",O_RDWR|O_CREAT,0777);
+	int device_list_fd = open("/sdcard/gate_list/device_list.txt",O_RDWR|O_CREAT,0777);
 
 	int device_list_read_len = read(device_list_fd,device_list,BUFFSIZE_MAX);
 	close(device_list_fd);
@@ -57,7 +57,7 @@ void file_init_common()
 	{
 		printf("device_list not json!!!\n");
 		memset(device_list,0,BUFFSIZE_MAX);
-		device_list_fd = open("/system/bin/device_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		device_list_fd = open("/sdcard/gate_list/device_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memcpy(device_list,"{}",2);
 		write(device_list_fd,device_list,2);
 		fsync(device_list_fd);
@@ -68,20 +68,19 @@ void file_init_common()
 /*	初始化设备状态列表文件  */
 	pthread_mutex_lock(&mutex_zl);
 	memset(device_state_list,0,BUFFSIZE);
-	int device_state_list_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT,0777);
+	int device_state_list_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT,0777);
 
 	int device_state_list_len = read(device_state_list_fd,device_state_list,BUFFSIZE);
 	close(device_state_list_fd);
-	if(json_checker(device_state_list)==0 && device_state_list_len>0)
+	if(json_checker(device_state_list)==0 && device_state_list_len > 5)
 	{
 		;
 	}
-	
 	else
 	{
 		printf("device_state_list not json!!!\n");
 		close(device_state_list_fd);
-		device_state_list_fd = open("/system/bin/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);//重新打开创建
+		device_state_list_fd = open("/sdcard/gate_list/device_state_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);//重新打开创建
 		memset(device_state_list,0,BUFFSIZE);
 		cJSON *device_stae_root = cJSON_CreateObject();
 		cJSON_AddStringToObject(device_stae_root,"co","orange");
@@ -105,7 +104,7 @@ void file_init_common()
 /*	初始化定时器列表文件  */
 	
 	memset(timer_list,0,BUFFSIZE);
-	int timer_list_fd = open("/system/bin/timer_list.txt",O_RDWR|O_CREAT,0777);
+	int timer_list_fd = open("/sdcard/gate_list/timer_list.txt",O_RDWR|O_CREAT,0777);
 
 	int timer_list_read_len = read(timer_list_fd,timer_list,BUFFSIZE);
 
@@ -116,7 +115,7 @@ void file_init_common()
 	{
 		printf("timer_list not json!!!\n");
 		memset(timer_list,0,BUFFSIZE);
-		timer_list_fd = open("/system/bin/timer_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		timer_list_fd = open("/sdcard/gate_list/timer_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memcpy(timer_list,"{}",2);
 		write(timer_list_fd,timer_list,2);
 		fsync(timer_list_fd);
@@ -127,7 +126,7 @@ void file_init_common()
 /*	安放模式设置列表  */
 	
 	memset(secure_set_list,0,BUFFSIZE);
-	int secure_set_list_fd = open("/system/bin/secure_set_list.txt",O_RDWR|O_CREAT,0777);
+	int secure_set_list_fd = open("/sdcard/gate_list/secure_set_list.txt",O_RDWR|O_CREAT,0777);
 
 	int secure_set_list_read_len = read(secure_set_list_fd,secure_set_list,BUFFSIZE);
 
@@ -137,7 +136,7 @@ void file_init_common()
 	else
 	{
 		printf("secure_set_list not json!!!\n");
-		secure_set_list_fd = open("/system/bin/secure_set_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		secure_set_list_fd = open("/sdcard/gate_list/secure_set_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(secure_set_list,0,BUFFSIZE);
 		memcpy(secure_set_list,"{}",2);
 		write(secure_set_list_fd,secure_set_list,2);
@@ -149,7 +148,7 @@ void file_init_common()
 /*	初始化多联绑定文件  */
 	
 	memset(multi_bind,0,BUFFSIZE);
-	int multi_bind_fd = open("/system/bin/multi_bind.txt",O_RDWR|O_CREAT,0777);
+	int multi_bind_fd = open("/sdcard/gate_list/multi_bind.txt",O_RDWR|O_CREAT,0777);
 
 	int multi_bind_read_len = read(multi_bind_fd,multi_bind,BUFFSIZE);
 
@@ -159,7 +158,7 @@ void file_init_common()
 	else
 	{
 		printf("multi_bind not json!!!\n");
-		multi_bind_fd = open("/system/bin/multi_bind.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		multi_bind_fd = open("/sdcard/gate_list/multi_bind.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(multi_bind,0,BUFFSIZE);
 		memcpy(multi_bind,"{}",2);
 		write(multi_bind_fd,multi_bind,2);
@@ -170,7 +169,7 @@ void file_init_common()
 
 /* 初始化离线语音文件 */
 	memset(voice_list,0,BUFFSIZE);
-	int voice_fd = open("/system/bin/voice.txt",O_RDWR|O_CREAT,0777);
+	int voice_fd = open("/sdcard/gate_list/voice.txt",O_RDWR|O_CREAT,0777);
 
 	int voice_list_len = read(voice_fd,voice_list,BUFFSIZE);
 
@@ -180,7 +179,7 @@ void file_init_common()
 	else
 	{
 		printf("voice_list not json!!!\n");
-		voice_fd = open("/system/bin/voice.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		voice_fd = open("/sdcard/gate_list/voice.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(voice_list,0,BUFFSIZE);
 		memcpy(voice_list,"{}",2);
 		write(voice_fd,voice_list,2);
@@ -192,7 +191,7 @@ void file_init_common()
 	/* 初始化码库文件  */
 	pthread_mutex_lock(&mutex_code);
 	memset(code_id,0,BUFFSIZE);
-	int code_fd = open("/system/bin/code.txt",O_RDWR|O_CREAT,0777);
+	int code_fd = open("/sdcard/gate_list/code.txt",O_RDWR|O_CREAT,0777);
 
 	int code_id_len = read(code_fd,code_id,BUFFSIZE);
 
@@ -204,7 +203,7 @@ void file_init_common()
 	else
 	{
 		printf("code_id not json!!!\n");
-		code_fd = open("/system/bin/code.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		code_fd = open("/sdcard/gate_list/code.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(code_id,0,BUFFSIZE);
 		cJSON *code_root = cJSON_CreateObject();
 		cJSON *code_kt = cJSON_CreateObject();
@@ -226,7 +225,7 @@ void file_init_common()
 	/*初始化房间列表文件*/
 	pthread_mutex_lock(&mutex_room);
 	memset(room_list,0,BUFFSIZE_ROOM);
-	int room_fd = open("/system/bin/room_list.txt",O_RDWR|O_CREAT,0777);
+	int room_fd = open("/sdcard/gate_list/room_list.txt",O_RDWR|O_CREAT,0777);
 	int room_fd_len = read(room_fd,room_list,BUFFSIZE_ROOM);
 	close(room_fd);
 	if(json_checker(room_list)==0 && room_fd_len > 0)
@@ -236,7 +235,7 @@ void file_init_common()
 	else
 	{
 		printf("room_list not json\n");
-		room_fd = open("/system/bin/room_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		room_fd = open("/sdcard/gate_list/room_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(room_list,0,BUFFSIZE_ROOM);
 		memcpy(room_list,"{}",2);
 		write(room_fd,room_list,2);
@@ -248,7 +247,7 @@ void file_init_common()
 	/*初始化人体列表*/
 	char control_human[10240];
 	memset(control_human,0,10240);
-	int human_fd = open("/system/bin/human_list.txt",O_RDWR|O_CREAT,0777);
+	int human_fd = open("/sdcard/gate_list/human_list.txt",O_RDWR|O_CREAT,0777);
 	int human_fd_len = read(human_fd,control_human,10240);
 	close(human_fd);
 	if(json_checker(control_human)==0 && human_fd_len > 0)
@@ -282,10 +281,11 @@ void file_init_common()
 		cJSON_Delete(human_root);
 		human_root = NULL;
 	}
+	
 	/*初始化延时控制列表*/
 	char control_delay[10240];
 	memset(control_delay,0,10240);
-	int delay_fd = open("/system/bin/delay_list.txt",O_RDWR|O_CREAT,0777);
+	int delay_fd = open("/sdcard/gate_list/delay_list.txt",O_RDWR|O_CREAT,0777);
 	int delay_fd_len = read(delay_fd,control_delay,10240);
 	close(delay_fd);
 	if(json_checker(control_delay)==0 && delay_fd_len > 0)
@@ -332,7 +332,7 @@ void file_init_net(void)
 	/* 初始化码库文件  */
 	pthread_mutex_lock(&mutex_code);
 	memset(code_id,0,BUFFSIZE);
-	int code_fd = open("/system/bin/code.txt",O_RDWR|O_CREAT,0777);
+	int code_fd = open("/sdcard/gate_list/code.txt",O_RDWR|O_CREAT,0777);
 
 	int code_id_len = read(code_fd,code_id,BUFFSIZE);
 
@@ -390,7 +390,7 @@ void file_init_net(void)
 	else
 	{
 		printf("code_id not json!!!\n");
-		code_fd = open("/system/bin/code.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		code_fd = open("/sdcard/gate_list/code.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		memset(code_id,0,BUFFSIZE);
 		cJSON *code_root = cJSON_CreateObject();
 		cJSON *code_kt = cJSON_CreateObject();
@@ -448,7 +448,7 @@ void file_init_net(void)
 /*  初始化安防模式文件	*/
 	pthread_mutex_lock(&mutex_qj);	
 	memset(qj_model,0,5);
-	int qj_model_fd = open("/system/bin/qj_model.txt",O_RDWR|O_CREAT,0777);
+	int qj_model_fd = open("/sdcard/gate_list/qj_model.txt",O_RDWR|O_CREAT,0777);
 	int qj_model_len = read(qj_model_fd,qj_model,5);
 	if(qj_model_len==-1 || qj_model_len <4)
 	{

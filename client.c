@@ -30,8 +30,10 @@ int client_init(void)
 	if( ret == 0)
 	{	
 		printf("connect success  cd = %d\n",cd);
-		struct timeval timeout = {1,0}; 
-		setsockopt(cd,SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(struct timeval));
+		struct timeval timeout ;
+		socklen_t time_len = sizeof(struct timeval);
+		getsockopt(cd,SOL_SOCKET, SO_SNDTIMEO, &timeout,&time_len);
+		printf("%d %d\n",(int)timeout.tv_sec,(int)timeout.tv_usec);
 		return 0;
 	}
 	else

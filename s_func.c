@@ -173,9 +173,11 @@ void str_to_hex(uint8_t *str_unchar,char *str_char,int len_of_hex)
 }
 void get_sensor_value(uint8_t *u_data,char *value,char *level)
 {
-	char *value_z = (char *)malloc(6);
+	//char *value_z = (char *)malloc(6);
+	char value_z[6];
 	memset(value_z,0,6);
-	char *value_x = (char *)malloc(4);
+	//char *value_x = (char *)malloc(4);
+	char value_x[4];
 	memset(value_x,0,4);
 	uint16_t num1 ;
 	num1 = u_data[16]<<8 | u_data[17];
@@ -195,10 +197,10 @@ void get_sensor_value(uint8_t *u_data,char *value,char *level)
 	int my_level;
 	my_level = (int)u_data[19];
 	int_to_str(my_level,level);
-	free(value_z);
-	value_z = NULL;
-	free(value_x);
-	value_x = NULL;
+	//free(value_z);
+	//value_z = NULL;
+	//free(value_x);
+	//value_x = NULL;
 }
 void get_sensor_power(uint8_t *u_data,char *level)
 {
@@ -694,7 +696,7 @@ void get_sn_from_server(cJSON *root)
 		}
 		else if(sn_old_or_new->valueint==1)//old sn
 		{
-			int sn_fd = open("/system/bin/sn.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+			int sn_fd = open("/sdcard/gate_list/sn.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 			cJSON *sn_object = cJSON_CreateObject();
 			cJSON_AddStringToObject(sn_object,"sn",get_sn_num->valuestring);
 			char *sn_char = cJSON_PrintUnformatted(sn_object);
@@ -710,7 +712,7 @@ void get_sn_from_server(cJSON *root)
 			cJSON_AddStringToObject(sn_mac_root,"mac",mac);
 			cJSON_AddStringToObject(sn_mac_root,"sn",get_sn_num->valuestring);
 			char *sn_mac_root_char = cJSON_PrintUnformatted(sn_mac_root);
-			int sn_mac_fd = open("/system/bin/sn_mac.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+			int sn_mac_fd = open("/sdcard/gate_list/sn_mac.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 			write(sn_mac_fd,sn_mac_root_char,strlen(sn_mac_root_char));
 			fsync(sn_mac_fd);
 			close(sn_mac_fd);
@@ -743,7 +745,7 @@ void get_sn_feedback(cJSON *root)
 		get_mac(mac);
 		cJSON *get_data = cJSON_GetObjectItem(root,"data");
 		cJSON *get_sn_num = cJSON_GetObjectItem(get_data,"sn");
-		int sn_fd = open("/system/bin/sn.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		int sn_fd = open("/sdcard/gate_list/sn.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		cJSON *sn_object = cJSON_CreateObject();
 		cJSON_AddStringToObject(sn_object,"sn",get_sn_num->valuestring);
 		char *sn_char = cJSON_PrintUnformatted(sn_object);
@@ -759,7 +761,7 @@ void get_sn_feedback(cJSON *root)
 		cJSON_AddStringToObject(sn_mac_root,"mac",mac);
 		cJSON_AddStringToObject(sn_mac_root,"sn",get_sn_num->valuestring);
 		char *sn_mac_root_char = cJSON_PrintUnformatted(sn_mac_root);
-		int sn_mac_fd = open("/system/bin/sn_mac.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+		int sn_mac_fd = open("/sdcard/gate_list/sn_mac.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 		write(sn_mac_fd,sn_mac_root_char,strlen(sn_mac_root_char));
 		fsync(sn_mac_fd);
 		close(sn_mac_fd);
@@ -880,7 +882,7 @@ void my_human_file(void)
 		p_human = p_human->next;
 	}
 	char *my_char = cJSON_PrintUnformatted(human_root);
-	int human_file_fd = open("/system/bin/human_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+	int human_file_fd = open("/sdcard/gate_list/human_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 	write(human_file_fd,my_char,strlen(my_char));
 	fsync(human_file_fd);
 	close(human_file_fd);
@@ -914,7 +916,7 @@ void my_delay_file(void)
 		p_delay = p_delay->next;
 	}
 	char *my_char = cJSON_PrintUnformatted(delay_root);
-	int delay_file_fd = open("/system/bin/delay_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
+	int delay_file_fd = open("/sdcard/gate_list/delay_list.txt",O_RDWR|O_CREAT|O_TRUNC,0777);
 	write(delay_file_fd,my_char,strlen(my_char));
 	fsync(delay_file_fd);
 	close(delay_file_fd);
@@ -933,11 +935,11 @@ void delete_delay_or_human_file(char *delete_mac)
 		if(!strcmp(p1->mac,delete_mac))
 		{
 			p1->flag = 0;
+			my_human_file();
 			break;
 		}
 		p1 = p1->next;
 	}
-	my_human_file();
 	pthread_mutex_unlock(&mutex_human);
 	
 	DELAY *p = NULL;

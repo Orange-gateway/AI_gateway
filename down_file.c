@@ -59,7 +59,8 @@ int tcp_client(char *hostname,int port)
 }
 int send_http_request(int sockfd,char *hostname,int port,char *filename)
 {
-	char *send_request_char = (char *)malloc(256);
+	//char *send_request_char = (char *)malloc(256);
+	char send_request_char[256];
 	memset(send_request_char,0,256);
 	sprintf(send_request_char,"GET %s HTTP/1.1\r\nHost: %s:%d\r\nConnection: Close\r\n\r\n",filename,hostname,port);
 	printf("send_request_char:%s",send_request_char);
@@ -91,7 +92,7 @@ int recv_http_request(int sockfd)
 	}
 	num = index-buf+4;
 	printf("num:%d\n",num);
-	down_fd = open("/system/bin/gateway_bak",O_RDWR|O_CREAT|O_TRUNC,0777);
+	down_fd = open("/data/gate_code/gateway_bak",O_RDWR|O_CREAT|O_TRUNC,0777);
 	printf("downloading >>>>>\n");
 	write(down_fd,buf+num,ret-num);
 	while(ret)
@@ -103,7 +104,7 @@ int recv_http_request(int sockfd)
 			shutdown(sockfd,SHUT_RDWR);
 			close(sockfd);
 			close(down_fd);
-			remove("/system/bin/gateway_bak");
+			remove("/data/gate_code/gateway_bak");
 			return -1;
 		}
 		write(down_fd,buf,ret);
@@ -143,9 +144,9 @@ void down_file(cJSON *root)
 	{
 		printf("download file success\n");
 		pthread_mutex_lock(&mutex_down_file);
-		remove("/system/bin/gateway");
-		system("mv /system/bin/gateway_bak /system/bin/gateway");
-		system("chmod +x /system/bin/gateway");
+		remove("/data/gate_code/gateway");
+		system("mv /data/gate_code/gateway_bak /data/gate_code/gateway");
+		system("chmod +x /data/gate_code/gateway");
 		pthread_mutex_unlock(&mutex_down_file);
 		kill_gateway();
 	}
